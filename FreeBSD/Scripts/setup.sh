@@ -3,6 +3,26 @@
 ### ################################################################################################################################
 
 ### ################################
+### FreeBSD Handbook
+### ################################
+
+### https://docs.freebsd.org/en/books/handbook/
+
+### ################################
+### FreeBSD Developers' Handbook
+### ################################
+
+### https://docs.freebsd.org/en/books/developers-handbook/
+
+### ################################
+### FreeBSD FAQs
+### ################################
+
+### https://docs.freebsd.org/en/books/faq/
+
+### ################################################################################################################################
+
+### ################################
 ### Setup Groups
 ### ################################
 
@@ -135,8 +155,8 @@ EOF
 ### ################################
 
 sudo pkg install --yes zsh
-zsh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-sudo zsh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+curl -fsSL "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh" | sh -s -- --unattended
+curl -fsSL "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh" | sudo sh -s -- --unattended
 
 cat << 'EOF' | tee -a "$HOME/.zshrc" | sudo tee -a "/root/.zshrc" > "/dev/null"
 ### ################################
