@@ -48,8 +48,20 @@ sysrc allscreens_flags="-f spleen-16x32"
 ### ################################
 
 pkg install --yes sudo
-echo '%wheel ALL=(ALL:ALL) ALL' > "/usr/local/etc/sudoers.d/wheel"
+cat << 'EOF' | tee "/usr/local/etc/sudoers.d/wheel" > "/dev/null"
+%wheel ALL=(ALL:ALL) ALL
+EOF
 chmod 0440 "/usr/local/etc/sudoers.d/wheel"
+
+### ################################
+### Setup Do As
+### ################################
+
+pkg install --yes doas
+cat << 'EOF' | tee "/usr/local/etc/doas.conf" > "/dev/null"
+permit persist :wheel
+EOF
+chmod 0440 "/usr/local/etc/doas.conf"
 
 ### ################################################################################################################################
 
@@ -71,17 +83,46 @@ cat << 'EOF' | tee -a "$HOME/.shrc" | sudo tee -a "/root/.shrc" > "/dev/null"
 ### SHELL ENVIRONMENT
 ### ################################
 
-os_version=$(freebsd-version)
-sh_name=$(ps -p $$ -o comm=)
-if [ "$(id -u)" -eq 0 ]; then
-	usr_color="\033[1;31m"
-else
-	usr_color="\033[1;32m"
-fi
-export PS1="
-\033[0;33m\033[1;31m \033[1;35m${os_version}\033[0;33m─\033[1;34m \033[1;35m${sh_name}\033[0;33m
-\033[0;33m┌──❮ \033[1;33m \033[1;36m\w\033[0;33m ❯─ ❮\033[1;34m ${usr_color}\u\033[0;33m❯
-\033[0;33m└─\033[1;34m\033[0m "
+C_RED='\[\e[1;31m\]'
+C_GREEN='\[\e[1;32m\]'
+C_YELLOW='\[\e[1;33m\]'
+C_BLUE='\[\e[1;34m\]'
+C_PURPLE='\[\e[1;35m\]'
+C_CYAN='\[\e[1;36m\]'
+C_GRAY='\[\e[1;30m\]'
+C_RESET='\[\e[0m\]'
+
+update_prompt() {
+	local branch="$(command git symbolic-ref --short HEAD 2>/dev/null || command git rev-parse --short HEAD 2>/dev/null)"
+	local git_info=" "
+
+	if [ -n "${branch}" ]; then
+		git_info=" ${C_BLUE}(${C_RED}${branch}${C_BLUE})${C_RESET} "
+	fi
+
+	export PS1="${C_GREEN}\u${C_BLUE}@${C_PURPLE}\h${C_GRAY}:${C_GRAY}[${C_YELLOW}\w${C_GRAY}]${C_RESET}${git_info}${C_CYAN}\$${C_RESET} "
+}
+update_prompt
+
+run_and_update() {
+	local cmd="$1"
+	shift
+	command "$cmd" "$@"
+	local ret=$?
+	update_prompt
+	return $ret
+}
+
+cd()    { run_and_update cd "$@"; }
+rm()    { run_and_update rm "$@"; }
+rmdir() { run_and_update rmdir "$@"; }
+git()   { run_and_update git "$@"; }
+gh()    { run_and_update gh "$@"; }
+wget()  { run_and_update wget "$@"; }
+curl()  { run_and_update curl "$@"; }
+unzip() { run_and_update unzip "$@"; }
+tar()   { run_and_update tar "$@"; }
+7z()    { run_and_update 7z "$@"; }
 
 ### ################################
 ### SHELL FUNCTIONS
